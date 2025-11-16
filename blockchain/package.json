@@ -1,0 +1,17 @@
+{
+  "name": "laporin-blockchain",
+  "version": "1.0.0",
+  "description": "LaporIn Blockchain Smart Contracts",
+  "scripts": {
+    "compile": "hardhat compile",
+    "deploy": "hardhat run scripts/deploy.js",
+    "test": "hardhat test"
+  },
+  "dependencies": {
+    "hardhat": "^2.19.4",
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "ethers": "^6.9.0",
+    "dotenv": "^16.3.1"
+  }
+}
+
