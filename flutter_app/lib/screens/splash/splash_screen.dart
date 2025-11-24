@@ -112,8 +112,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                             ),
                           ),
                           // Curved lines extending from center
-                          CustomPaint(
-                            size: const Size(120, 120),
+                          const CustomPaint(
+                            size: Size(120, 120),
                             painter: _LogoPainter(),
                           ),
                         ],
@@ -137,7 +137,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                       style: GoogleFonts.inter(
                         fontSize: 14,
                         fontStyle: FontStyle.italic,
-                        color: const Color(0xFF00D4FF).withOpacity(0.8),
+                        color: const Color(0xFF00D4FF).withValues(alpha: 0.8),
                         letterSpacing: 0.5,
                       ),
                       textAlign: TextAlign.center,
@@ -167,6 +167,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
 // Custom painter untuk logo design
 class _LogoPainter extends CustomPainter {
+  const _LogoPainter();
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
