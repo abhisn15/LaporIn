@@ -1,53 +1,47 @@
-# Dockerfile untuk Frontend Next.js
-FROM node:20-alpine AS base
+# Dockerfile untuk LaporIn Backend
+# Railway akan menggunakan Dockerfile ini untuk build backend
+FROM node:20-alpine
 
-# Install dependencies only when needed
-FROM base AS deps
-RUN apk add --no-cache libc6-compat
+# Install dependencies untuk canvas dan native modules
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    cairo-dev \
+    jpeg-dev \
+    pango-dev \
+    giflib-dev \
+    pixman-dev
+
+# Set working directory
 WORKDIR /app
 
-# Copy package files
-COPY package.json package-lock.json* ./
-RUN npm ci
+# Copy package files dari backend
+COPY backend/package*.json ./
 
-# Rebuild the source code only when needed
-FROM base AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+# Install dependencies
+RUN npm ci --only=production
 
-# Set environment variables for build
-ARG NEXT_PUBLIC_API_URL
-ARG NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=$NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
-# Enable standalone output for Docker
-ENV DOCKER_BUILD=true
+# Copy Prisma schema
+COPY backend/prisma ./prisma/
 
-# Build Next.js
-RUN npm run build
+# Generate Prisma Client
+RUN npx prisma generate
 
-# Production image, copy all the files and run next
-FROM base AS runner
-WORKDIR /app
+# Copy seluruh kode backend
+COPY backend .
 
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
+# Create uploads directory
+RUN mkdir -p uploads/faces
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+# Expose port (Railway akan auto-assign PORT via env)
+EXPOSE 3001
 
-# Copy necessary files
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:' + (process.env.PORT || 3001) + '/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
-USER nextjs
-
-EXPOSE 3000
-
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
-
+# Start server backend
+# Railway akan override dengan start command: node server.js
 CMD ["node", "server.js"]
 

@@ -12,6 +12,16 @@ File `backend/.env` **HANYA** untuk development di laptop Anda. Untuk production
 - ✅ Set environment variables di **Railway Dashboard** → Service → Variables
 - ❌ Jangan commit file `.env` ke GitHub (sudah di `.gitignore`)
 
+### 🎯 Yang Perlu Di-Set di Railway
+
+**Hanya `DATABASE_URL` saja!** ✅
+
+Backend menggunakan **Prisma** yang hanya butuh `DATABASE_URL`. Variabel lain seperti `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` **TIDAK PERLU** di-set di Railway karena:
+- ❌ Tidak digunakan di production code (hanya ada di test files)
+- ✅ Prisma otomatis parse `DATABASE_URL` untuk koneksi database
+
+**Railway akan otomatis generate `DATABASE_URL`** jika Anda menggunakan Railway PostgreSQL service.
+
 ---
 
 ## 🚀 Setup PostgreSQL di Railway
