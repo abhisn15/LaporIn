@@ -17,6 +17,7 @@
     "clear-seeder": "node scripts/clear-seeder-data.js",
     "clear-all": "node scripts/clear-all-data-except-chatbot.js",
     "clear-all-data": "node scripts/clear-all-data.js",
+    "clear-location-reports": "node scripts/clear-location-and-reports.js",
     "clear-and-reseed": "node scripts/clear-and-reseed.js",
     "test": "jest --coverage --verbose",
     "test:watch": "jest --watch",
