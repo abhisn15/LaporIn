@@ -716,6 +716,9 @@ const fitMapToBoundary = useCallback((boundary: RTRwBoundary, mapInstance?: goog
   }, []);
 
   const restrictedZoomRange = useMemo(() => {
+    // Superadmin tidak ada batasan zoom
+    if (isSuperAdmin) return null;
+    
     if (!boundaryRestriction) return null;
     
     const radius = rtRwBoundary?.radius || null;
