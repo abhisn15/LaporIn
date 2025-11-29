@@ -16,37 +16,39 @@ const AREA_CENTER_LAT = -6.2746;
 const AREA_CENTER_LNG = 106.8023;
 
 // Struktur RT/RW dengan lokasi real di dalam Kelurahan Cipete, Jakarta Selatan
+// RW radius: 1km (1000 meter)
+// RT radius: Minimal 200 meter, maksimal 500 meter
 // Hanya RW001 dan RW002 (RW002 full generate, RW001 ada data asli)
 const RT_RW_LOCATIONS = {
   'RT001/RW001': {
     center: { lat: -6.2735, lng: 106.8005 }, // Cipete area
-    radius: 250, // 250 meter radius
+    radius: 300, // 300 meter radius (minimal 200m)
     address: 'Jl. Cipete Raya No. 1-50, Cipete, Jakarta Selatan'
   },
   'RT002/RW001': {
-    center: { lat: -6.2745, lng: 106.8020 },
-    radius: 250,
-    address: 'Jl. Cipete Raya No. 51-100, Cipete, Jakarta Selatan'
+    center: { lat: -6.2745, lng: 106.8020 }, // Fatmawati area
+    radius: 250, // 250 meter radius
+    address: 'Jl. Fatmawati No. 51-100, Fatmawati, Jakarta Selatan'
   },
   'RT003/RW001': {
-    center: { lat: -6.2755, lng: 106.8035 },
-    radius: 250,
+    center: { lat: -6.2755, lng: 106.8035 }, // Cipete area
+    radius: 200, // 200 meter radius (minimal)
     address: 'Jl. Cipete Raya No. 101-150, Cipete, Jakarta Selatan'
   },
   'RT001/RW002': {
-    center: { lat: -6.2760, lng: 106.8010 },
-    radius: 250,
-    address: 'Jl. Pangeran Antasari No. 1-50, Cipete, Jakarta Selatan'
+    center: { lat: -6.2760, lng: 106.8010 }, // Fatmawati area
+    radius: 350, // 350 meter radius
+    address: 'Jl. Fatmawati No. 1-50, Fatmawati, Jakarta Selatan'
   },
   'RT002/RW002': {
-    center: { lat: -6.2770, lng: 106.8025 },
-    radius: 250,
+    center: { lat: -6.2770, lng: 106.8025 }, // Cipete area
+    radius: 280, // 280 meter radius
     address: 'Jl. Pangeran Antasari No. 51-100, Cipete, Jakarta Selatan'
   },
   'RT003/RW002': {
-    center: { lat: -6.2780, lng: 106.8040 },
-    radius: 250,
-    address: 'Jl. Pangeran Antasari No. 101-150, Cipete, Jakarta Selatan'
+    center: { lat: -6.2780, lng: 106.8040 }, // Fatmawati area
+    radius: 220, // 220 meter radius
+    address: 'Jl. Fatmawati No. 101-150, Fatmawati, Jakarta Selatan'
   }
 };
 
@@ -570,8 +572,9 @@ async function seed() {
         const warga = wargasInRtRw[Math.floor(Math.random() * wargasInRtRw.length)];
         const reportTemplate = REAL_REPORTS[reportCount % REAL_REPORTS.length];
         
-        // Generate koordinat laporan di sekitar center RT/RW
-        const reportLocation = randomPointInRadius(locationData.center, locationData.radius * 0.9);
+        // Generate koordinat laporan di sekitar center RT (dalam radius RT, bukan RW)
+        // Pastikan laporan berada di sekitar area RT masing-masing
+        const reportLocation = randomPointInRadius(locationData.center, locationData.radius * 0.8);
         
         // Generate alamat
         const locationName = reportTemplate.locations[Math.floor(Math.random() * reportTemplate.locations.length)];
