@@ -28,12 +28,20 @@ COPY backend/prisma ./prisma/
 # Generate Prisma Client
 RUN npx prisma generate
 
+# Copy model files first (to ensure they're included)
+RUN mkdir -p public/models
+COPY backend/public/models/ ./public/models/
+
 # Copy seluruh kode backend
 COPY backend .
 
-# Ensure models directory exists and verify model files
+# Ensure models directory exists and verify model files are copied
 RUN mkdir -p public/models && \
-    ls -la public/models/ || echo "Models directory created"
+    if [ -d "public/models" ] && [ "$(ls -A public/models 2>/dev/null)" ]; then \
+        echo "✅ Model files found:" && ls -lh public/models/; \
+    else \
+        echo "⚠️  Model files not found, will need to download manually"; \
+    fi
 
 # Create uploads directory
 RUN mkdir -p uploads/faces
