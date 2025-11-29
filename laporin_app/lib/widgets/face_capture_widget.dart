@@ -246,6 +246,7 @@ class _FaceCaptureWidgetState extends State<FaceCaptureWidget> {
 
     try {
       // Stop image stream before taking picture to prevent conflicts
+      final wasCapturing = _isCapturing;
       await _stopCamera();
       
       // Wait a bit for camera to stabilize
@@ -265,6 +266,14 @@ class _FaceCaptureWidgetState extends State<FaceCaptureWidget> {
 
       // Notify that photo was captured - backend will validate
       widget.onFaceCaptured([]);
+      
+      // Restart camera setelah capture agar tetap hidup untuk ambil ulang jika perlu
+      if (wasCapturing && _controller != null && _controller!.value.isInitialized) {
+        await Future.delayed(const Duration(milliseconds: 300));
+        if (mounted && _controller != null && _controller!.value.isInitialized) {
+          await _startCamera();
+        }
+      }
     } catch (e) {
       widget.onError('Gagal menangkap wajah: $e');
       // Restart camera on error

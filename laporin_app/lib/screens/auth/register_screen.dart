@@ -38,22 +38,21 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   void _handleFaceCaptured(List<double> descriptor) {
     // Photo captured - akan diproses saat register
-    setState(() {
-      _isCapturingFace = false;
-    });
+    // Jangan ubah state di sini, biarkan kamera tetap hidup
   }
 
   void _handlePhotoCaptured(File photo, bool isFrontCamera) {
     setState(() {
       _capturedPhoto = photo;
-      _showFaceCapture = false; // Tutup kamera setelah capture
+      // Jangan langsung tutup kamera - biarkan user melihat preview atau ambil ulang
+      // Kamera akan tetap hidup sampai user tutup sendiri
     });
     
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Foto wajah berhasil diambil'),
+        content: Text('Foto wajah berhasil diambil. Tutup kamera untuk melanjutkan.'),
         backgroundColor: Colors.green,
-        duration: Duration(seconds: 2),
+        duration: Duration(seconds: 3),
       ),
     );
   }
