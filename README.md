@@ -264,7 +264,7 @@ Chatbot LaporIn menggunakan **NLP (Natural Language Processing)** yang canggih d
 ### Fitur Chatbot
 
 #### 1. **AI-Powered Intent Detection** ✅
-- Menggunakan Groq AI (Llama 3.1) untuk semantic understanding
+- Menggunakan Groq AI (Llama 3.5) untuk semantic understanding
 - Memahami konteks percakapan
 - Bisa menangani variasi bahasa natural
 
@@ -381,7 +381,7 @@ Bot: "Baik, draft laporan sudah dibuat. Klik tombol di bawah untuk mengirim."
   - **Context-Aware** - Memahami konteks percakapan sebelumnya
 - **Smart Chatbot**: Natural language processing dengan intent detection
 - **AI Fraud Detection**: Duplicate detection, spam filtering, anomaly detection
-- **AI Provider**: Groq API (Llama 3.1-8b-instant)
+- **AI Provider**: Groq API (Llama 3.5-8b-instant)
 
 ### Blockchain
 - **Network**: Polygon Mumbai Testnet
