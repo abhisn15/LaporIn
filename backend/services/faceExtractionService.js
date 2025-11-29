@@ -11,7 +11,12 @@ faceapi.env.monkeyPatch({ Canvas, Image, ImageData });
 // face-api.js will use its own bundled TensorFlow.js version
 
 let modelsLoaded = false;
-const MODEL_PATH = path.join(__dirname, '../../public/models'); // Path ke models folder
+// IMPORTANT:
+// - Di lingkungan development (lokal), struktur folder: backend/services + backend/public/models
+// - Di Docker/Railway, backend di-copy ke /app, sehingga struktur: /app/services + /app/public/models
+//   Jika kita naik 2 tingkat dari __dirname, path akan menjadi `/public/models` (tanpa `/app`) sehingga tidak ditemukan.
+// - Karena itu, cukup naik 1 tingkat dari `services` ke root backend (/app) lalu masuk ke `public/models`.
+const MODEL_PATH = path.join(__dirname, '../public/models'); // Path ke models folder yang benar di /app/public/models
 
 /**
  * Load face-api.js models (hanya sekali saat startup)
