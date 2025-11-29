@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import useAuthStore from '@/store/authStore';
 import Layout from '@/components/Layout';
 import api from '@/lib/api';
+import { useToast } from '@/hooks/useToast';
+import { ToastContainer } from '@/components/Toast';
 import {
   User,
   Mail,
@@ -23,6 +25,7 @@ import FaceCapture from '@/components/FaceCapture';
 export default function PengaturanPage() {
   const { user, isAuthenticated, checkAuth } = useAuthStore();
   const router = useRouter();
+  const { toasts, success: showSuccess, error: showError, removeToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -111,7 +114,9 @@ export default function PengaturanPage() {
       });
       
       if (response.data.success) {
-        setFaceSuccess('Face recognition berhasil didaftarkan!');
+        const successMsg = 'Face recognition berhasil didaftarkan!';
+        setFaceSuccess(successMsg);
+        showSuccess(successMsg);
         setFaceVerified(true);
         setShowFaceCapture(false);
         setFaceDescriptor(null);
@@ -122,7 +127,9 @@ export default function PengaturanPage() {
         setTimeout(() => setFaceSuccess(''), 5000);
       }
     } catch (err: any) {
-      setFaceError(err.response?.data?.error || 'Gagal mendaftarkan face recognition');
+      const errorMsg = err.response?.data?.error || 'Gagal mendaftarkan face recognition';
+      setFaceError(errorMsg);
+      showError(errorMsg);
     } finally {
       setRegisteringFace(false);
     }
@@ -193,6 +200,7 @@ export default function PengaturanPage() {
 
   return (
     <Layout>
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
       <div className="space-y-6">
         {/* Header */}
         <div>

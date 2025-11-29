@@ -222,16 +222,58 @@ async function seed() {
   console.log(`   ✅ ${admin.email} (${admin.role}) - Email asli untuk notifikasi\n`);
 
   // 2. Admin RW untuk setiap RW (email asli untuk RW001)
+  // Hitung lokasi RW yang menaungi semua RT di dalamnya
   console.log('2️⃣  Membuat Admin RW...');
   const rwNumbers = [...new Set(rtRwList.map(rtRw => rtRw.split('/')[1]))];
   const realEmails = {
     'RW001': 'kepodehlol54@gmail.com', // Email asli untuk Admin RW001
   };
   
+  // Hitung center dan radius RW untuk setiap RW
+  const rwLocations = {};
+  for (const rw of rwNumbers) {
+    const rtsInRw = rtRwList.filter(rtRw => rtRw.split('/')[1] === rw);
+    if (rtsInRw.length === 0) continue;
+    
+    // Ambil semua center RT di RW ini
+    const rtCenters = rtsInRw.map(rtRw => RT_RW_LOCATIONS[rtRw].center);
+    const rtRadii = rtsInRw.map(rtRw => RT_RW_LOCATIONS[rtRw].radius);
+    
+    // Hitung center RW (rata-rata dari semua center RT)
+    const avgLat = rtCenters.reduce((sum, c) => sum + c.lat, 0) / rtCenters.length;
+    const avgLng = rtCenters.reduce((sum, c) => sum + c.lng, 0) / rtCenters.length;
+    
+    // Hitung radius RW (jarak terjauh dari center RW ke edge RT terjauh + buffer)
+    let maxDistance = 0;
+    for (let i = 0; i < rtCenters.length; i++) {
+      const rtCenter = rtCenters[i];
+      const rtRadius = rtRadii[i];
+      // Jarak dari center RW ke center RT
+      const latDiff = rtCenter.lat - avgLat;
+      const lngDiff = rtCenter.lng - avgLng;
+      const distanceToCenter = Math.sqrt(latDiff * latDiff * 111320 * 111320 + lngDiff * lngDiff * 111320 * 111320 * Math.cos(avgLat * Math.PI / 180) * Math.cos(avgLat * Math.PI / 180));
+      // Jarak ke edge RT (center to RT center + RT radius)
+      const distanceToEdge = distanceToCenter + rtRadius;
+      if (distanceToEdge > maxDistance) {
+        maxDistance = distanceToEdge;
+      }
+    }
+    // Tambah buffer 100m untuk memastikan semua RT tertutup
+    const rwRadius = Math.ceil(maxDistance + 100);
+    
+    rwLocations[rw] = {
+      center: { lat: avgLat, lng: avgLng },
+      radius: rwRadius
+    };
+    
+    console.log(`   📍 ${rw}: Center (${avgLat.toFixed(6)}, ${avgLng.toFixed(6)}), Radius: ${rwRadius}m (menaungi ${rtsInRw.length} RT)`);
+  }
+  
   for (let rwIndex = 0; rwIndex < rwNumbers.length; rwIndex++) {
     const rw = rwNumbers[rwIndex];
     const email = realEmails[rw] || `admin${rw.toLowerCase()}@example.com`;
     const isRealEmail = realEmails[rw] ? true : false;
+    const rwLocation = rwLocations[rw];
     
     // Nama untuk RW001 pakai nama asli, lainnya generate
     const adminRwName = isRealEmail ? 'Admin RW 001' : `Admin ${rw}`;
@@ -245,7 +287,10 @@ async function seed() {
         role: 'admin_rw',
         rtRw: null,
         jenisKelamin: adminRwJenisKelamin,
-        isVerified: true
+        isVerified: true,
+        rtRwLatitude: rwLocation?.center.lat || null,
+        rtRwLongitude: rwLocation?.center.lng || null,
+        rtRwRadius: rwLocation?.radius || null
       },
       create: {
         email,
@@ -255,6 +300,9 @@ async function seed() {
         rtRw: null, // Admin RW tidak punya RT spesifik
         jenisKelamin: adminRwJenisKelamin,
         isVerified: true,
+        rtRwLatitude: rwLocation?.center.lat || null,
+        rtRwLongitude: rwLocation?.center.lng || null,
+        rtRwRadius: rwLocation?.radius || null,
         createdAt: randomDate(threeMonthsAgo, new Date(threeMonthsAgo.getTime() + 30 * 24 * 60 * 60 * 1000))
       }
     });

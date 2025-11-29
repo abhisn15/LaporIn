@@ -589,11 +589,18 @@ const fitMapToBoundary = useCallback((boundary: RTRwBoundary, mapInstance?: goog
       }
     }
     setIsSettingBoundary(true);
+    // Pre-fill dengan lokasi dan radius yang sudah ada (jika ada)
     if (rtRwBoundary?.center) {
       setNewBoundaryCenter(rtRwBoundary.center);
+    } else {
+      // Jika belum ada, set ke center map saat ini
+      setNewBoundaryCenter(mapCenter);
     }
     if (rtRwBoundary?.radius) {
       setNewBoundaryRadius(rtRwBoundary.radius);
+    } else {
+      // Default radius jika belum ada
+      setNewBoundaryRadius(500);
     }
   };
 
@@ -1468,39 +1475,65 @@ const fitMapToBoundary = useCallback((boundary: RTRwBoundary, mapInstance?: goog
                 </Select>
               </FormControl>
 
-              {/* Set Boundary Button */}
+              {/* Set/Edit Boundary Button */}
             {canSetBoundary && (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {isSettingBoundary ? (
                   <>
-                      <Box sx={{ fontSize: '0.75rem', color: '#6B7280' }}>
+                      <Box sx={{ fontSize: '0.75rem', color: '#6B7280', mb: 1 }}>
                         {boundaryTargetLabel
-                          ? `Mengatur area ${boundaryTargetLabel}. Klik pada peta untuk menentukan titik pusat lalu atur radius.`
-                          : 'Klik pada peta untuk menentukan titik pusat lalu atur radius.'}
+                          ? `Mengatur area ${boundaryTargetLabel}. Klik pada peta untuk menentukan titik pusat baru atau ubah radius.`
+                          : 'Klik pada peta untuk menentukan titik pusat baru atau ubah radius.'}
                       </Box>
-                      <Box sx={{ display: 'flex', gap: 1 }}>
-                      <input
-                        type="number"
-                        value={newBoundaryRadius}
-                        onChange={(e) => setNewBoundaryRadius(parseFloat(e.target.value) || 500)}
+                      
+                      {/* Current Location Display */}
+                      {newBoundaryCenter && (
+                        <Box sx={{ p: 1.5, bgcolor: '#F3F4F6', borderRadius: 1, mb: 1 }}>
+                          <Box sx={{ fontSize: '0.75rem', color: '#6B7280', mb: 0.5 }}>Lokasi Center:</Box>
+                          <Box sx={{ fontSize: '0.875rem', fontWeight: 500 }}>
+                            {newBoundaryCenter.lat.toFixed(6)}, {newBoundaryCenter.lng.toFixed(6)}
+                          </Box>
+                        </Box>
+                      )}
+                      
+                      {/* Radius Input */}
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        <label className="text-sm font-medium text-gray-700">Radius (meter)</label>
+                        <input
+                          type="number"
+                          value={newBoundaryRadius}
+                          onChange={(e) => setNewBoundaryRadius(parseFloat(e.target.value) || 500)}
                           className="px-3 py-2 border border-gray-300 rounded-lg w-full"
-                        placeholder="Radius (meter)"
-                        min="100"
-                        max="5000"
-                      />
+                          placeholder="Radius (meter)"
+                          min="100"
+                          max="5000"
+                          step="50"
+                        />
+                        <Box sx={{ fontSize: '0.75rem', color: '#6B7280' }}>
+                          Jarak dari center ke edge boundary
+                        </Box>
                       </Box>
-                      <Box sx={{ display: 'flex', gap: 1 }}>
+                      
+                      {/* Action Buttons */}
+                      <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
                       <button
                         onClick={handleSaveBoundary}
-                          className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium"
+                          className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium flex items-center justify-center gap-2"
                       >
-                          <Save className="h-4 w-4 inline mr-1" />
-                        Simpan
+                          <Save className="h-4 w-4" />
+                        Simpan Perubahan
                       </button>
                       <button
                         onClick={() => {
                           setIsSettingBoundary(false);
                           setNewBoundaryCenter(null);
+                          // Reset to original boundary if exists
+                          if (rtRwBoundary?.center) {
+                            setNewBoundaryCenter(rtRwBoundary.center);
+                          }
+                          if (rtRwBoundary?.radius) {
+                            setNewBoundaryRadius(rtRwBoundary.radius);
+                          }
                         }}
                           className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm font-medium"
                       >
@@ -1516,7 +1549,7 @@ const fitMapToBoundary = useCallback((boundary: RTRwBoundary, mapInstance?: goog
                       className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-60 text-sm font-medium flex items-center justify-center gap-2"
                   >
                     <Settings className="h-4 w-4" />
-                      {isSuperAdmin ? 'Set Lokasi RW/RT Terpilih' : 'Set Lokasi Wilayah Saya'}
+                      {rtRwBoundary ? 'Edit Lokasi & Radius' : (isSuperAdmin ? 'Set Lokasi RW/RT Terpilih' : 'Set Lokasi Wilayah Saya')}
                   </button>
                 )}
                 </Box>

@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
 import useAuthStore from '@/store/authStore';
+import { useToast } from '@/hooks/useToast';
+import { ToastContainer } from '@/components/Toast';
 import {
   Paper,
   TextField,
@@ -54,6 +56,7 @@ const ROLE_LABELS: Record<string, string> = {
 
 export default function AdminSystemPanel() {
   const { user } = useAuthStore();
+  const { toasts, success: showSuccess, error: showError, removeToast } = useToast();
   const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -164,9 +167,10 @@ export default function AdminSystemPanel() {
     if (!confirm('Hapus pengguna ini?')) return;
     try {
       await api.delete(`/auth/users/${id}`);
+      showSuccess('Pengguna berhasil dihapus');
       fetchUsers();
-    } catch {
-      alert('Gagal menghapus pengguna');
+    } catch (error: any) {
+      showError(error.response?.data?.error || 'Gagal menghapus pengguna');
     }
   };
 
@@ -189,11 +193,8 @@ export default function AdminSystemPanel() {
       });
       
       // Show success message
-      if (response.data.message) {
-        alert(response.data.message);
-      } else {
-        alert('User berhasil dibuat!');
-      }
+      const successMsg = response.data.message || 'User berhasil dibuat!';
+      showSuccess(successMsg);
       
       setOpenDialog(false);
       setFormData({
@@ -206,7 +207,9 @@ export default function AdminSystemPanel() {
       });
       fetchUsers();
     } catch (error: any) {
-      setFormError(error.response?.data?.error || 'Gagal membuat pengguna');
+      const errorMsg = error.response?.data?.error || 'Gagal membuat pengguna';
+      setFormError(errorMsg);
+      showError(errorMsg);
     } finally {
       setFormLoading(false);
     }
@@ -258,17 +261,16 @@ export default function AdminSystemPanel() {
         jenis_kelamin: editFormData.jenis_kelamin || null,
       });
       
-      if (response.data.message) {
-        alert(response.data.message);
-      } else {
-        alert('User berhasil diperbarui!');
-      }
+      const successMsg = response.data.message || 'User berhasil diperbarui!';
+      showSuccess(successMsg);
       
       setEditDialog(false);
       setEditingUser(null);
       fetchUsers();
     } catch (error: any) {
-      setEditFormError(error.response?.data?.error || 'Gagal memperbarui pengguna');
+      const errorMsg = error.response?.data?.error || 'Gagal memperbarui pengguna';
+      setEditFormError(errorMsg);
+      showError(errorMsg);
     } finally {
       setEditFormLoading(false);
     }
@@ -302,6 +304,7 @@ export default function AdminSystemPanel() {
 
   return (
     <div className="space-y-6">
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="h5" sx={{ fontWeight: 700, color: '#111827' }}>
