@@ -421,21 +421,6 @@ Dokumen historis/duplikat sudah dipindahkan ke [`docs/archive/`](./docs/archive)
 - **Dyandra** - Frontend Developer and UI/UX Design
 - **Faris** - Problem Solver & Solution
 
----
-
-### 📄 Copyright
-
-**© 2025 Weladalah Team. All Rights Reserved.**
-
-Platform LaporIn dikembangkan oleh **Weladalah Team**.
-
-**Hak Cipta:**
-- Semua kode, desain, dan dokumentasi dalam repository ini adalah hak cipta **Weladalah Team**.
-- Penggunaan untuk tujuan pendidikan dan non-komersial diperbolehkan dengan atribusi.
-- Untuk penggunaan komersial, silakan hubungi tim pengembang.
-
----
-
 **Made with ❤️ by Weladalah Team**
 
 </div>
