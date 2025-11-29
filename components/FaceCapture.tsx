@@ -6,7 +6,7 @@ import * as faceapi from 'face-api.js';
 interface FaceCaptureProps {
   onFaceCaptured: (descriptor: number[]) => void;
   onError?: (error: string) => void;
-  videoRef?: React.RefObject<HTMLVideoElement>;
+  videoRef?: React.RefObject<HTMLVideoElement | null>;
   autoStart?: boolean;
   hideAfterCapture?: boolean; // Sembunyikan UI setelah capture berhasil
 }
