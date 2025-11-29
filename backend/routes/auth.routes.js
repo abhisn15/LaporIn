@@ -1041,6 +1041,116 @@ router.get('/me', authenticate, async (req, res) => {
 });
 
 // Hapus user (dibatasi berdasarkan role). Untuk keamanan, hanya admin/admin_rw/ketua_rt/sekretaris_rt.
+router.put('/users/:id', async (req, res) => {
+  try {
+    // Validasi: header Authorization harus ada dan role diizinkan
+    const headerAuth = req.headers.authorization;
+    if (!headerAuth) return res.status(401).json({ error: 'Unauthorized' });
+    const token = headerAuth.split(' ')[1];
+    const tokenTerdekripsi = jwt.verify(token, process.env.JWT_SECRET);
+    const editorRole = tokenTerdekripsi.role;
+    const editorId = tokenTerdekripsi.userId;
+    
+    // Hanya superadmin yang bisa edit user
+    if (editorRole !== 'admin' && editorRole !== 'admin_sistem') {
+      return res.status(403).json({ error: 'Hanya Super Admin yang dapat mengedit user' });
+    }
+    
+    const { id } = req.params;
+    const { name, email, role, rt_rw, jenis_kelamin } = req.body;
+    
+    if (!name || !email || !role) {
+      return res.status(400).json({ error: 'Nama, email, dan role wajib diisi' });
+    }
+    
+    // Validasi role
+    const daftarRoleValid = ['warga', 'pengurus', 'sekretaris_rt', 'sekretaris', 'ketua_rt', 'admin_rw', 'admin'];
+    if (!daftarRoleValid.includes(role)) {
+      return res.status(400).json({ error: 'Role tidak valid' });
+    }
+    
+    // Cek apakah user target ada
+    const userTarget = await prisma.user.findUnique({
+      where: { id: parseInt(id) },
+      select: { id: true, email: true, role: true }
+    });
+    
+    if (!userTarget) {
+      return res.status(404).json({ error: 'User tidak ditemukan' });
+    }
+    
+    // Cegah edit admin lain kecuali admin sistem
+    if (editorRole !== 'admin_sistem') {
+      if (userTarget.role === 'admin' || userTarget.role === 'admin_sistem') {
+        return res.status(403).json({ error: 'Tidak dapat mengedit admin lain' });
+      }
+    }
+    
+    // Cek apakah email sudah digunakan user lain
+    if (email !== userTarget.email) {
+      const emailExists = await prisma.user.findUnique({
+        where: { email },
+        select: { id: true }
+      });
+      if (emailExists && emailExists.id !== parseInt(id)) {
+        return res.status(400).json({ error: 'Email sudah digunakan oleh user lain' });
+      }
+    }
+    
+    // Import helper functions
+    const { canCreateRole } = require('../utils/userHierarchy');
+    
+    // Cek apakah editor bisa membuat user dengan role yang dipilih
+    if (!canCreateRole(editorRole, role)) {
+      return res.status(403).json({ 
+        error: `Role ${editorRole} tidak memiliki permission untuk mengubah user menjadi role ${role}` 
+      });
+    }
+    
+    // Update user
+    const updatedUser = await prisma.user.update({
+      where: { id: parseInt(id) },
+      data: {
+        name,
+        email,
+        role,
+        rtRw: rt_rw || null,
+        jenisKelamin: jenis_kelamin || null,
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        rtRw: true,
+        jenisKelamin: true,
+        isVerified: true,
+        createdAt: true,
+      }
+    });
+    
+    console.log(`[User Update] User ${editorId} (${editorRole}) updated user ${updatedUser.id} (${role})`);
+    
+    res.json({ 
+      success: true, 
+      message: 'User berhasil diperbarui',
+      user: {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        name: updatedUser.name,
+        role: updatedUser.role,
+        rt_rw: updatedUser.rtRw,
+        jenis_kelamin: updatedUser.jenisKelamin,
+        is_verified: updatedUser.isVerified,
+        created_at: updatedUser.createdAt
+      }
+    });
+  } catch (error) {
+    console.error('[User Update Error]', error);
+    res.status(400).json({ error: error.message });
+  }
+});
+
 router.delete('/users/:id', async (req, res) => {
   try {
     // Validasi: header Authorization harus ada dan role diizinkan
