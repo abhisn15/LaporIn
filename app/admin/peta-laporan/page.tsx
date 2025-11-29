@@ -16,9 +16,10 @@ const containerStyle = {
   height: '100%'
 };
 
+// Center dan batas default untuk Kelurahan Cipete, Jakarta Selatan
 const defaultCenter = {
-  lat: -6.2088, // Jakarta default
-  lng: 106.8456
+  lat: -6.2746,
+  lng: 106.8023
 };
 
 // Google Maps libraries - harus konstanta di luar komponen untuk mencegah reload
@@ -58,6 +59,14 @@ type LatLngBoundsLiteral = {
   south: number;
   east: number;
   west: number;
+};
+
+// Batas global kelurahan Cipete (perkiraan, digunakan sebagai fallback restriction)
+const CIPETE_BOUNDS: LatLngBoundsLiteral = {
+  north: -6.265,
+  south: -6.285,
+  east: 106.812,
+  west: 106.792
 };
 
 export default function PetaLaporanPage() {
@@ -691,7 +700,7 @@ const fitMapToBoundary = useCallback((boundary: RTRwBoundary, mapInstance?: goog
   }, []);
 
   const restrictedZoomRange = useMemo(() => {
-    if (!boundaryRestriction || isSuperAdmin) return null;
+    if (!boundaryRestriction) return null;
     
     const radius = rtRwBoundary?.radius || null;
     const minZoom = calculateMinZoomFromRadius(radius);
@@ -805,9 +814,12 @@ const fitMapToBoundary = useCallback((boundary: RTRwBoundary, mapInstance?: goog
           }
         ],
       };
-      if (!isSuperAdmin && boundaryRestriction) {
+
+      // Gunakan boundary RT/RW jika ada, kalau tidak pakai batas global Cipete
+      const effectiveBounds = boundaryRestriction || CIPETE_BOUNDS;
+      if (effectiveBounds) {
         options.restriction = {
-          latLngBounds: boundaryRestriction,
+          latLngBounds: effectiveBounds,
           strictBounds: true,
         };
         if (restrictedZoomRange) {
@@ -816,10 +828,10 @@ const fitMapToBoundary = useCallback((boundary: RTRwBoundary, mapInstance?: goog
         }
       }
       return options;
-    }, [boundaryRestriction, isSuperAdmin, restrictedZoomRange]);
+    }, [boundaryRestriction, restrictedZoomRange]);
 
     const handleZoomChanged = useCallback(() => {
-      if (!mapRef.current || isSuperAdmin || !restrictedZoomRange) return;
+      if (!mapRef.current || !restrictedZoomRange) return;
       const currentZoom = mapRef.current.getZoom();
       if (typeof currentZoom !== 'number') return;
       if (currentZoom < restrictedZoomRange.minZoom) {

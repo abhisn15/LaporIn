@@ -2,13 +2,14 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import useAuthStore from '@/store/authStore';
 import Link from 'next/link';
 import FaceCapture from '@/components/FaceCapture';
 import api from '@/lib/api';
 import { useToast } from '@/hooks/useToast';
 import { ToastContainer } from '@/components/Toast';
-import LaporInLogo from '@/components/LaporInLogo';
+import AppIcon from '@/app/assets/logo/icon.png';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -245,7 +246,11 @@ export default function LoginPage() {
       <div className="max-w-md w-full space-y-6 sm:space-y-8 p-4 sm:p-6 md:p-8 bg-white rounded-2xl shadow-xl border border-gray-100 animate-fade-in mx-4" suppressHydrationWarning>
         <div className="text-center" suppressHydrationWarning>
           <div className="flex justify-center mb-4" suppressHydrationWarning>
-            <LaporInLogo size={80} showText={false} />
+            <Image
+              src={AppIcon}
+              alt="LaporIn"
+              className="h-16 w-16 rounded-2xl shadow-lg object-contain"
+            />
           </div>
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
             LaporIn

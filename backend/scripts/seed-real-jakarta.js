@@ -10,56 +10,57 @@
 const bcrypt = require('bcryptjs');
 const prisma = require('../database/prisma');
 
-// Koordinat center area Jakarta (Pondok Pinang, Jakarta Selatan)
-const AREA_CENTER_LAT = -6.263185;
-const AREA_CENTER_LNG = 106.798882;
+// Koordinat center area Kelurahan Cipete, Jakarta Selatan
+// Fokus demo seluruh sistem dikunci ke wilayah Cipete
+const AREA_CENTER_LAT = -6.2746;
+const AREA_CENTER_LNG = 106.8023;
 
-// Struktur RT/RW dengan lokasi real di area Jakarta
+// Struktur RT/RW dengan lokasi real di dalam Kelurahan Cipete, Jakarta Selatan
 const RT_RW_LOCATIONS = {
   'RT001/RW001': {
-    center: { lat: -6.261500, lng: 106.797500 }, // Sedikit offset dari center
+    center: { lat: -6.2735, lng: 106.8005 }, // Cipete area
     radius: 250, // 250 meter radius
-    address: 'Jl. Kebon Jeruk No. 1-50, Pondok Pinang, Jakarta Selatan'
+    address: 'Jl. Cipete Raya No. 1-50, Cipete, Jakarta Selatan'
   },
   'RT002/RW001': {
-    center: { lat: -6.262000, lng: 106.798000 },
+    center: { lat: -6.2745, lng: 106.8020 },
     radius: 250,
-    address: 'Jl. Kebon Jeruk No. 51-100, Pondok Pinang, Jakarta Selatan'
+    address: 'Jl. Cipete Raya No. 51-100, Cipete, Jakarta Selatan'
   },
   'RT003/RW001': {
-    center: { lat: -6.262500, lng: 106.798500 },
+    center: { lat: -6.2755, lng: 106.8035 },
     radius: 250,
-    address: 'Jl. Kebon Jeruk No. 101-150, Pondok Pinang, Jakarta Selatan'
+    address: 'Jl. Cipete Raya No. 101-150, Cipete, Jakarta Selatan'
   },
   'RT001/RW002': {
-    center: { lat: -6.264000, lng: 106.799000 },
+    center: { lat: -6.2760, lng: 106.8010 },
     radius: 250,
-    address: 'Jl. Pasar Minggu No. 1-50, Pondok Pinang, Jakarta Selatan'
+    address: 'Jl. Pangeran Antasari No. 1-50, Cipete, Jakarta Selatan'
   },
   'RT002/RW002': {
-    center: { lat: -6.264500, lng: 106.799500 },
+    center: { lat: -6.2770, lng: 106.8025 },
     radius: 250,
-    address: 'Jl. Pasar Minggu No. 51-100, Pondok Pinang, Jakarta Selatan'
+    address: 'Jl. Pangeran Antasari No. 51-100, Cipete, Jakarta Selatan'
   },
   'RT003/RW002': {
-    center: { lat: -6.265000, lng: 106.800000 },
+    center: { lat: -6.2780, lng: 106.8040 },
     radius: 250,
-    address: 'Jl. Pasar Minggu No. 101-150, Pondok Pinang, Jakarta Selatan'
+    address: 'Jl. Pangeran Antasari No. 101-150, Cipete, Jakarta Selatan'
   },
   'RT001/RW003': {
-    center: { lat: -6.261000, lng: 106.799500 },
+    center: { lat: -6.2725, lng: 106.8045 },
     radius: 250,
-    address: 'Jl. Ciputat Raya No. 1-50, Pondok Pinang, Jakarta Selatan'
+    address: 'Jl. Fatmawati Raya No. 1-50, Cipete, Jakarta Selatan'
   },
   'RT002/RW003': {
-    center: { lat: -6.260500, lng: 106.800000 },
+    center: { lat: -6.2735, lng: 106.8060 },
     radius: 250,
-    address: 'Jl. Ciputat Raya No. 51-100, Pondok Pinang, Jakarta Selatan'
+    address: 'Jl. Fatmawati Raya No. 51-100, Cipete, Jakarta Selatan'
   },
   'RT003/RW003': {
-    center: { lat: -6.260000, lng: 106.800500 },
+    center: { lat: -6.2745, lng: 106.8075 },
     radius: 250,
-    address: 'Jl. Ciputat Raya No. 101-150, Pondok Pinang, Jakarta Selatan'
+    address: 'Jl. Fatmawati Raya No. 101-150, Cipete, Jakarta Selatan'
   }
 };
 
@@ -186,7 +187,7 @@ function randomDate(start, end) {
 async function seed() {
   console.log('🌱 Memulai seeding dengan data real Jakarta...\n');
   console.log(`📍 Area center: ${AREA_CENTER_LAT}, ${AREA_CENTER_LNG}`);
-  console.log(`📍 Lokasi: Pondok Pinang, Jakarta Selatan\n`);
+  console.log(`📍 Lokasi: Kelurahan Cipete, Jakarta Selatan\n`);
 
   const DEMO_PASSWORD = 'demo123';
   const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 10);
@@ -377,11 +378,17 @@ async function seed() {
   // 4. Buat warga (10-15 warga per RT) - warga pertama di RT001/RW001 pakai email asli
   console.log('4️⃣  Membuat warga dengan lokasi di area RT/RW...');
   let wargaIndex = 1;
-  const firstWargaEmail = 'suroprikitiw@gmail.com'; // Email asli untuk warga pertama
+  // Warga khusus dengan data lengkap dan email asli (Kelurahan Cipete)
+  const specialWarga = {
+    email: 'abhisuryanugroho0@gmail.com',
+    name: 'Abhi Surya Nugroho',
+    rtRw: 'RT001/RW001',
+    jenisKelamin: 'laki_laki'
+  };
   
   for (const [rtRw, locationData] of Object.entries(RT_RW_LOCATIONS)) {
     const numWarga = Math.floor(Math.random() * 6) + 10; // 10-15 warga per RT
-    const isFirstRT = rtRw === 'RT001/RW001'; // RT pertama pakai email asli untuk warga pertama
+    const isFirstRT = rtRw === specialWarga.rtRw; // RT khusus pakai email dan data asli untuk warga pertama
     
     for (let i = 0; i < numWarga; i++) {
       const isMale = Math.random() > 0.5;
@@ -389,30 +396,35 @@ async function seed() {
         ? NAMES_MALE[Math.floor(Math.random() * NAMES_MALE.length)]
         : NAMES_FEMALE[Math.floor(Math.random() * NAMES_FEMALE.length)];
       
-      // Warga pertama di RT001/RW001 pakai email asli
-      const email = (isFirstRT && i === 0) ? firstWargaEmail : `warga${wargaIndex}@example.com`;
+      const isSpecialFirst = isFirstRT && i === 0;
+      
+      // Warga pertama di RT khusus pakai email & data asli
+      const email = isSpecialFirst ? specialWarga.email : `warga${wargaIndex}@example.com`;
       
       // Generate lokasi warga di sekitar center RT/RW (dalam radius)
       const wargaLocation = randomPointInRadius(locationData.center, locationData.radius * 0.8);
+      
+      const displayName = isSpecialFirst ? `${specialWarga.name} (${rtRw})` : `${name} (${rtRw})`;
+      const jenisKelamin = isSpecialFirst ? specialWarga.jenisKelamin : (isMale ? 'laki_laki' : 'perempuan');
       
       const warga = await prisma.user.upsert({
         where: { email },
         update: {
           passwordHash,
-          name: `${name} (${rtRw})`,
+          name: displayName,
           role: 'warga',
           rtRw,
-          jenisKelamin: isMale ? 'laki_laki' : 'perempuan',
-          isVerified: Math.random() > 0.3 // 70% verified
+          jenisKelamin,
+          isVerified: isSpecialFirst ? true : Math.random() > 0.3 // 70% verified, warga spesial pasti verified
         },
         create: {
           email,
           passwordHash,
-          name: `${name} (${rtRw})`,
+          name: displayName,
           role: 'warga',
           rtRw,
-          jenisKelamin: isMale ? 'laki_laki' : 'perempuan',
-          isVerified: Math.random() > 0.3, // 70% verified
+          jenisKelamin,
+          isVerified: isSpecialFirst ? true : Math.random() > 0.3, // 70% verified, warga spesial pasti verified
           createdAt: randomDate(threeMonthsAgo, now)
         }
       });

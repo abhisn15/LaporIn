@@ -132,7 +132,7 @@ router.post('/', authenticate, requirePermission(PERMISSIONS.REPORT_CREATE), asy
       // Foto ada tapi tidak ada koordinat GPS
       photoWarning = 'Foto dilampirkan tetapi lokasi GPS tidak tersedia. Pastikan GPS aktif saat mengambil foto dan melaporkan.';
     }
-
+    
     // Validasi lokasi terhadap RT/RW boundary jika ada koordinat GPS
     if (latitude && longitude && user.rtRw) {
       try {
@@ -1652,7 +1652,7 @@ router.get('/stats', authenticate, async (req, res) => {
         };
       }
     }
-
+    
     // Jendela waktu dinamis berdasarkan periode
     const timeWindowDays = period === 'day' ? 30 : period === 'week' ? 84 : 365;
     const timeWindowMs = timeWindowDays * 24 * 60 * 60 * 1000;
@@ -1679,9 +1679,9 @@ router.get('/stats', authenticate, async (req, res) => {
     reportsForTimeSeries.forEach(report => {
       const date = new Date(report.createdAt);
       let key = '';
-      if (period === 'day') {
+    if (period === 'day') {
         key = date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
-      } else if (period === 'week') {
+    } else if (period === 'week') {
         const week = getWeek(date);
         key = `${week}/${date.getFullYear()}`;
       } else {

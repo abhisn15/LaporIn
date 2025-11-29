@@ -2,12 +2,14 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import useAuthStore from '@/store/authStore';
 import Link from 'next/link';
 import FaceCapture from '@/components/FaceCapture';
 import api from '@/lib/api';
 import { useToast } from '@/hooks/useToast';
 import { ToastContainer } from '@/components/Toast';
+import AppIcon from '@/app/assets/logo/icon.png';
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('');
@@ -24,29 +26,12 @@ export default function RegisterPage() {
   const { toasts, success, error: showError, removeToast } = useToast();
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Cleanup kamera saat unmount atau navigate away
-  useEffect(() => {
-    return () => {
-      console.log('[RegisterPage] Cleaning up camera on unmount...');
-      // Matikan semua media streams
-      if (videoRef.current?.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => {
-          track.stop();
-          console.log('[RegisterPage] Camera track stopped');
-        });
-        videoRef.current.srcObject = null;
-      }
-      // Juga cek navigator.mediaDevices untuk memastikan semua stream dimatikan
-      navigator.mediaDevices.getUserMedia({ video: true })
-        .then(stream => {
-          stream.getTracks().forEach(track => track.stop());
-        })
-        .catch(() => {
-          // Ignore errors
-        });
-    };
-  }, []);
+  // NOTE:
+  // Cleanup kamera utama sekarang ditangani oleh komponen FaceCapture sendiri
+  // (via beforeunload dan logic internal). Di dev mode, React StrictMode +
+  // Fast Refresh bisa memanggil efek cleanup berkali-kali dan membuat kamera
+  // tiba-tiba mati. Untuk itu, kita sengaja tidak melakukan cleanup tambahan
+  // di level RegisterPage supaya kamera lebih stabil selama pengembangan.
 
   const handleFaceCaptured = (descriptor: number[]) => {
     setFaceDescriptor(descriptor);
@@ -98,8 +83,12 @@ export default function RegisterPage() {
       <ToastContainer toasts={toasts} onRemove={removeToast} />
       <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-2xl shadow-xl border border-gray-100 animate-fade-in">
         <div className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl mb-4 shadow-lg">
-            <span className="text-white font-bold text-2xl">L</span>
+          <div className="inline-flex items-center justify-center mb-4">
+            <Image
+              src={AppIcon}
+              alt="LaporIn"
+              className="h-16 w-16 rounded-2xl shadow-lg object-contain"
+            />
           </div>
           <h2 className="text-3xl font-bold text-gray-900">Daftar Akun Warga</h2>
           <p className="mt-2 text-gray-600">Bergabung untuk membuat laporan</p>

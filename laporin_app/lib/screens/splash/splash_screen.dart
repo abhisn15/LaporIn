@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../providers/auth_provider.dart';
-import '../../widgets/laporin_logo.dart';
 import '../auth/login_screen.dart';
 import '../dashboard/dashboard_screen.dart';
 
@@ -148,10 +147,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Logo menggunakan reusable widget
-                    const LaporInLogo(
-                      size: 120,
-                      showText: false,
+                    // Ganti logo splash dengan gambar dari assets
+                    Image.asset(
+                      'assets/images/@laporin-logo.png',
+                      width: 160,
+                      height: 160,
+                      fit: BoxFit.contain,
                     ),
                     const SizedBox(height: 32),
                     // LAPORIN Text

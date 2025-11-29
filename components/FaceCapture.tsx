@@ -27,8 +27,7 @@ export default function FaceCapture({
   const [error, setError] = useState<string | null>(null);
   const [faceDetected, setFaceDetected] = useState(false);
   const [faceCaptured, setFaceCaptured] = useState(false); // Track jika wajah sudah di-capture
-  const autoStartRef = useRef(autoStart); // Ref untuk track autoStart tanpa re-render
-  const hasAutoStartedRef = useRef(false); // Track apakah sudah pernah auto-start
+  const manualStopRef = useRef(false); // Track jika user menekan tombol Stop Camera secara manual
 
   // Load face-api.js models
   useEffect(() => {
@@ -78,6 +77,7 @@ export default function FaceCapture({
   const startVideo = async () => {
     try {
       if (!videoRef.current) return;
+      manualStopRef.current = false; // Reset manual stop saat user/start otomatis menyalakan kamera
       
       const videoStream = await navigator.mediaDevices.getUserMedia({
         video: { 
@@ -103,6 +103,7 @@ export default function FaceCapture({
 
   // Stop video stream
   const stopVideo = () => {
+    manualStopRef.current = true; // User / logic internal menghentikan kamera secara eksplisit
     if (stream) {
       stream.getTracks().forEach(track => {
         track.stop();
@@ -122,7 +123,6 @@ export default function FaceCapture({
     setFaceCaptured(false);
     setFaceDetected(false);
     setError(null);
-    hasAutoStartedRef.current = false; // Reset auto-start flag
   };
 
   // Detect face and extract descriptor
@@ -204,66 +204,56 @@ export default function FaceCapture({
     }
   };
 
-  // Update ref saat autoStart berubah
+  // Auto start kamera ketika:
+  // - models sudah loaded
+  // - autoStart === true
+  // - belum sedang capturing
+  // Ini akan recovery otomatis setelah Fast Refresh / unmount-remount selama prop autoStart masih true.
   useEffect(() => {
-    autoStartRef.current = autoStart;
-  }, [autoStart]);
-
-  // Auto start jika autoStart = true (hanya sekali saat models loaded)
-  useEffect(() => {
-    if (autoStart && modelsLoaded && !isCapturing && !faceCaptured && !hasAutoStartedRef.current) {
-      console.log('[FaceCapture] Auto-starting video (models loaded, first time)...');
-      hasAutoStartedRef.current = true;
-      startVideo();
-    }
-  }, [modelsLoaded]); // Hanya trigger saat models loaded pertama kali
-
-  // Handle autoStart changes (stop jika menjadi false, start jika menjadi true dan belum pernah start)
-  useEffect(() => {
-    // Skip jika models belum loaded
     if (!modelsLoaded) return;
-    
+
+    // Jika autoStart dimatikan, hentikan kamera
     if (!autoStart && isCapturing) {
       console.log('[FaceCapture] AutoStart disabled, stopping video...');
       stopVideo();
-      hasAutoStartedRef.current = false; // Reset agar bisa start lagi jika autoStart menjadi true
-    } else if (autoStart && !isCapturing && !hasAutoStartedRef.current && !faceCaptured) {
-      console.log('[FaceCapture] AutoStart enabled, starting video...');
-      hasAutoStartedRef.current = true;
+    }
+
+    // Jika user sudah menekan Stop Camera (manualStopRef), jangan auto-restart kamera
+    if (manualStopRef.current) {
+      return;
+    }
+
+    // Jika autoStart aktif dan kamera belum menyala, nyalakan
+    if (autoStart && !isCapturing) {
+      console.log('[FaceCapture] AutoStart enabled, starting/restarting video...');
       startVideo();
     }
-  }, [autoStart, modelsLoaded, isCapturing, faceCaptured]); // Watch semua dependencies yang relevan
+  }, [autoStart, modelsLoaded, isCapturing]); // Watch semua dependencies yang relevan
 
-  // Cleanup on unmount - pastikan kamera dimatikan
+  // Cleanup on unmount
+  // Catatan penting:
+  // - Di React 18 + Next.js dev mode, efek bisa dipanggil dua kali (StrictMode)
+  //   dan komponen bisa di-unmount/remount cepat saat Fast Refresh.
+  // - Untuk menghindari kamera tiba-tiba mati di dev, kita tidak lagi
+  //   menghentikan track kamera di sini. Browser akan otomatis menghentikan
+  //   stream saat tab ditutup / reload, dan kita masih punya handler beforeunload.
   useEffect(() => {
     return () => {
-      console.log('[FaceCapture] Component unmounting, cleaning up...');
-      // Matikan semua track kamera saat komponen unmount
-      // Gunakan stream dari closure terbaru
-      if (stream) {
-        stream.getTracks().forEach(track => {
-          track.stop();
-          console.log('[FaceCapture] Camera track stopped on unmount');
-        });
-      }
-      // Juga cek videoRef untuk memastikan stream dimatikan
-      if (videoRef.current?.srcObject) {
-        const currentStream = videoRef.current.srcObject as MediaStream;
-        currentStream.getTracks().forEach(track => {
-          track.stop();
-          console.log('[FaceCapture] Camera track stopped from videoRef');
-        });
-        videoRef.current.srcObject = null;
-      }
+      console.log('[FaceCapture] Component unmounting (no-op cleanup to keep camera stable in dev)...');
     };
-  }, [stream]); // Track stream untuk cleanup yang benar
+  }, []);
 
   // Cleanup saat page visibility change (user switch tab atau navigate)
+  // NOTE:
+  // - Sebelumnya, saat document.hidden === true, kita langsung stop kamera.
+  // - Di development / saat user pindah sebentar (misal cek OTP), ini bikin kamera
+  //   tiba-tiba mati dan tidak auto-start lagi.
+  // - Sekarang kita TIDAK lagi mematikan kamera hanya karena page hidden.
+  //   Browser sendiri sudah membatasi akses kamera saat tab tidak aktif.
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden && isCapturing) {
-        console.log('[FaceCapture] Page hidden, stopping camera...');
-        stopVideo();
+        console.log('[FaceCapture] Page hidden (camera will be kept alive, no auto-stop).');
       }
     };
 

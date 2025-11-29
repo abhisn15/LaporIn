@@ -4,7 +4,7 @@ class ApiConfig {
   // Untuk Android Emulator: http://10.0.2.2:3001/api
   static const String baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'https://api-laporin.up.railway.app/api', // Railway production URL
+    defaultValue: 'https://api-weladalah-laporin.up.railway.app/api', // Railway production URL (updated)
   );
   
   // Endpoints
