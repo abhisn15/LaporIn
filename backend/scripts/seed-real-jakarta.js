@@ -245,10 +245,12 @@ async function seed() {
     const avgLat = rtCenters.reduce((sum, c) => sum + c.lat, 0) / rtCenters.length;
     const avgLng = rtCenters.reduce((sum, c) => sum + c.lng, 0) / rtCenters.length;
     
-    // Hitung radius RW (jarak terjauh dari center RW ke edge RT terjauh + buffer)
-    // Pastikan radius RW lebih besar dari radius RT manapun
-    let maxDistance = 0;
+    // RW radius: Fixed 1km (1000 meter) sesuai requirement
+    const rwRadius = 1000; // 1km fixed
+    
+    // Validasi: Pastikan semua RT berada dalam area RW (radius 1km)
     let maxRtRadius = 0;
+    let allRTsInRange = true;
     for (let i = 0; i < rtCenters.length; i++) {
       const rtCenter = rtCenters[i];
       const rtRadius = rtRadii[i];
@@ -264,25 +266,21 @@ async function seed() {
       const distanceToCenter = Math.sqrt(latDiffMeters * latDiffMeters + lngDiffMeters * lngDiffMeters);
       // Jarak ke edge RT (center RW to RT center + RT radius)
       const distanceToEdge = distanceToCenter + rtRadius;
-      if (distanceToEdge > maxDistance) {
-        maxDistance = distanceToEdge;
+      if (distanceToEdge > rwRadius) {
+        allRTsInRange = false;
+        console.log(`      ⚠️  ${rtsInRw[i]}: Edge berada di ${distanceToEdge.toFixed(0)}m (di luar RW radius ${rwRadius}m)`);
       }
     }
-    // Tambah buffer 150m untuk memastikan semua RT tertutup dengan aman
-    // Pastikan radius RW minimal 1.5x dari radius RT terbesar
-    const minRwRadius = Math.ceil(maxRtRadius * 1.5);
-    const calculatedRwRadius = Math.ceil(maxDistance + 150);
-    const rwRadius = Math.max(minRwRadius, calculatedRwRadius);
     
     rwLocations[rw] = {
       center: { lat: avgLat, lng: avgLng },
       radius: rwRadius
     };
     
-    console.log(`   📍 ${rw}: Center (${avgLat.toFixed(6)}, ${avgLng.toFixed(6)}), Radius: ${rwRadius}m (menaungi ${rtsInRw.length} RT)`);
-    console.log(`      - RT radius maksimal: ${maxRtRadius}m`);
-    console.log(`      - RW radius: ${rwRadius}m (${rwRadius > maxRtRadius ? '✓' : '✗'} lebih besar dari RT)`);
-    console.log(`      - Semua RT berada di kawasan Cipete, Jakarta Selatan`);
+    console.log(`   📍 ${rw}: Center (${avgLat.toFixed(6)}, ${avgLng.toFixed(6)}), Radius: ${rwRadius}m (1km) - menaungi ${rtsInRw.length} RT`);
+    console.log(`      - RT radius: ${Math.min(...rtRadii)}m - ${maxRtRadius}m (minimal 200m ✓)`);
+    console.log(`      - Semua RT dalam area RW: ${allRTsInRange ? '✓' : '✗'}`);
+    console.log(`      - Area: Cipete & Fatmawati, Jakarta Selatan`);
   }
   
   for (let rwIndex = 0; rwIndex < rwNumbers.length; rwIndex++) {
@@ -686,7 +684,8 @@ async function seed() {
       if (!rtRw || !RT_RW_LOCATIONS[rtRw]) continue;
       
       const locationData = RT_RW_LOCATIONS[rtRw];
-      const reportLocation = randomPointInRadius(locationData.center, locationData.radius * 0.9);
+      // Pastikan laporan berada di sekitar area RT masing-masing (dalam radius RT)
+      const reportLocation = randomPointInRadius(locationData.center, locationData.radius * 0.8);
       const locationName = reportTemplate.locations[Math.floor(Math.random() * reportTemplate.locations.length)];
       const address = `${locationName}, ${locationData.address.split(', ')[1]}`;
       
