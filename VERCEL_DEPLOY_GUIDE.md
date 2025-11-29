@@ -57,7 +57,7 @@ git push origin main
 
 ### Step 3: Set Environment Variables
 
-**Setelah deploy pertama, update environment variables:**
+**⚠️ PENTING: Set environment variables SEBELUM atau SETELAH deploy pertama!**
 
 1. **Vercel Dashboard** → **Project** → **Settings** → **Environment Variables**
 
@@ -65,11 +65,14 @@ git push origin main
    ```
    Name: NEXT_PUBLIC_API_URL
    Value: https://api-laporin.up.railway.app
-   Environment: Production, Preview, Development
+   Environment: Production, Preview, Development (pilih semua)
    ```
+   ⚠️ **Ganti `https://api-laporin.up.railway.app` dengan URL Railway backend Anda!**
+   ⚠️ **Jangan tambahkan `/api` di akhir URL!** (kode sudah otomatis menambahkan `/api`)
 
-3. **Redeploy:**
-   - Vercel Dashboard → **Deployments** → **Redeploy**
+3. **Redeploy (jika sudah deploy sebelumnya):**
+   - Vercel Dashboard → **Deployments** → Pilih deployment terbaru → **Redeploy**
+   - Atau trigger deploy baru dengan push ke GitHub
 
 ---
 
