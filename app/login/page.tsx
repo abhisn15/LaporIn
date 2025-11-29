@@ -227,15 +227,6 @@ export default function LoginPage() {
 
         {step === 'credentials' ? (
           <>
-            {/* Step 1: Email & Password */}
-            <div className="flex items-center justify-center mb-4" suppressHydrationWarning>
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold text-sm">1</div>
-                <div className="h-1 w-12 bg-gray-300"></div>
-                <div className="w-8 h-8 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center font-semibold text-sm">2</div>
-              </div>
-            </div>
-
             <form onSubmit={handleCredentialsSubmit} className="space-y-6" suppressHydrationWarning>
               {success && (
                 <div className="bg-green-50 border-l-4 border-green-500 text-green-700 px-4 py-3 rounded-lg animate-fade-in" suppressHydrationWarning>
@@ -296,19 +287,6 @@ export default function LoginPage() {
           </>
         ) : (
           <>
-            {/* Step 2: Face Verification */}
-            <div className="flex items-center justify-center mb-4" suppressHydrationWarning>
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center font-semibold text-sm">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <div className="h-1 w-12 bg-green-500"></div>
-                <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold text-sm">2</div>
-              </div>
-            </div>
-
             <div className="space-y-6" suppressHydrationWarning>
               <div className="bg-blue-50 border-l-4 border-blue-500 px-4 py-3 rounded-lg" suppressHydrationWarning>
                 <div className="flex items-start">

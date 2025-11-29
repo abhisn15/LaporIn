@@ -7,9 +7,21 @@ export const initSocket = (token: string): Socket => {
     return socket;
   }
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+  // Get API URL from environment variable
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   
-  socket = io(apiUrl, {
+  if (!apiUrl) {
+    console.warn('[Socket] ⚠️ NEXT_PUBLIC_API_URL not set! Using localhost fallback. Set NEXT_PUBLIC_API_URL in Vercel environment variables.');
+  }
+  
+  const socketUrl = apiUrl || 'http://localhost:3001';
+  
+  // Log untuk debugging (hanya di development)
+  if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+    console.log('[Socket Config] Connecting to:', socketUrl);
+  }
+  
+  socket = io(socketUrl, {
     auth: {
       token: token
     },

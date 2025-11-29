@@ -1,9 +1,30 @@
 import axios from 'axios';
 
+// Get API URL from environment variable
+const getApiBaseUrl = () => {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  
+  // Log untuk debugging (hanya di development)
+  if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+    console.log('[API Config] NEXT_PUBLIC_API_URL:', apiUrl || 'NOT SET - using localhost fallback');
+  }
+  
+  if (apiUrl) {
+    // Remove trailing slash jika ada
+    const cleanUrl = apiUrl.replace(/\/$/, '');
+    return `${cleanUrl}/api`;
+  }
+  
+  // Fallback ke localhost hanya untuk development
+  if (typeof window !== 'undefined') {
+    console.warn('[API Config] ⚠️ NEXT_PUBLIC_API_URL not set! Using localhost fallback. Set NEXT_PUBLIC_API_URL in Vercel environment variables.');
+  }
+  
+  return 'http://localhost:3001/api';
+};
+
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL 
-    ? `${process.env.NEXT_PUBLIC_API_URL}/api`
-    : 'http://localhost:3001/api',
+  baseURL: getApiBaseUrl(),
   timeout: 30000, // 30 seconds timeout
   headers: {
     'Content-Type': 'application/json',

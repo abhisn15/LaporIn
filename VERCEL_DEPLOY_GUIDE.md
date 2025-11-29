@@ -89,9 +89,26 @@ NEXT_PUBLIC_API_URL=https://api-laporin.up.railway.app
 ### Optional Variables (jika diperlukan):
 
 ```env
+# Google Maps API Key (untuk fitur peta)
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
+
 NEXT_PUBLIC_WS_URL=wss://api-laporin.up.railway.app
 NEXT_PUBLIC_ENV=production
 ```
+
+**Cara Mendapatkan Google Maps API Key:**
+1. Buka https://console.cloud.google.com
+2. Create project atau pilih existing
+3. Enable APIs:
+   - Maps JavaScript API
+   - Geocoding API
+4. Create API Key
+5. Restrict API Key (recommended):
+   - HTTP referrers: `https://*.vercel.app/*`
+   - APIs: Maps JavaScript API, Geocoding API
+6. Copy dan paste ke Vercel Environment Variables
+
+📖 **Lihat `GOOGLE_MAPS_SETUP.md` untuk panduan lengkap**
 
 ---
 

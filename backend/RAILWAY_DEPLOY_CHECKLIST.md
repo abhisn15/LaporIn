@@ -125,6 +125,17 @@ PRIVATE_KEY=your_private_key
 CONTRACT_ADDRESS=0xYourContractAddress
 ```
 
+**Cara Mendapatkan Google Maps API Key:**
+1. Buka https://console.cloud.google.com
+2. Create project atau pilih existing
+3. Enable APIs:
+   - ✅ Geocoding API (untuk backend)
+   - ✅ Maps JavaScript API (untuk frontend)
+4. Create API Key
+5. Copy dan paste ke Railway Variables
+
+📖 **Lihat `GOOGLE_MAPS_SETUP.md` di root project untuk panduan lengkap**
+
 ---
 
 ### Step 5: Deploy & Test
