@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: 'standalone', // Untuk Docker deployment
+  // output: 'standalone' hanya untuk Docker deployment
+  // Vercel tidak perlu standalone output, akan handle otomatis
+  // Hanya set standalone jika DOCKER_BUILD env var ada
+  ...(process.env.DOCKER_BUILD === 'true' ? { output: 'standalone' as const } : {}),
   images: {
     remotePatterns: [
       {
