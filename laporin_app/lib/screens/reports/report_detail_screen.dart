@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../services/api_service.dart';
 import '../../models/report.dart';
+import '../../widgets/responsive_dialog.dart';
 
 class ReportDetailScreen extends ConsumerStatefulWidget {
   final int reportId;
@@ -338,41 +339,44 @@ class _ReportDetailScreenState extends ConsumerState<ReportDetailScreen> {
   Future<void> _showCancelDialog() async {
     final reasonController = TextEditingController();
     
-    final confirm = await showDialog<bool>(
+    final confirm = await showResponsiveDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Batalkan Laporan'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Apakah Anda yakin ingin membatalkan laporan ini?'),
-            const SizedBox(height: 16),
-            TextField(
-              controller: reasonController,
-              decoration: const InputDecoration(
-                labelText: 'Alasan pembatalan (opsional)',
-                hintText: 'Masukkan alasan...',
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 3,
+      title: 'Batalkan Laporan',
+      icon: Icons.cancel_outlined,
+      iconColor: Colors.red,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Apakah Anda yakin ingin membatalkan laporan ini?'),
+          const SizedBox(height: 16),
+          TextField(
+            controller: reasonController,
+            decoration: const InputDecoration(
+              labelText: 'Alasan pembatalan (opsional)',
+              hintText: 'Masukkan alasan...',
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Ya, Batalkan'),
+            maxLines: 3,
+            textInputAction: TextInputAction.done,
           ),
         ],
       ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: const Text('Batal'),
+        ),
+        ElevatedButton(
+          onPressed: () => Navigator.pop(context, true),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red,
+            foregroundColor: Colors.white,
+          ),
+          child: const Text('Ya, Batalkan'),
+        ),
+      ],
     );
 
     if (confirm == true) {

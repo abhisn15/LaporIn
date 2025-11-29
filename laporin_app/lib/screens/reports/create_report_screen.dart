@@ -6,6 +6,7 @@ import 'dart:convert';
 import '../../providers/report_provider.dart';
 import '../../services/api_service.dart';
 import '../../services/location_service.dart';
+import '../../widgets/responsive_dialog.dart';
 
 class CreateReportScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic>? initialData;
@@ -25,6 +26,7 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
   File? _imageFile;
   String? _imageBase64;
   bool _isLoading = false;
+  bool _isSubmitting = false; // Flag untuk mencegah duplikasi
   double? _latitude;
   double? _longitude;
   bool _isGettingLocation = false;
@@ -116,8 +118,16 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
 
   Future<void> _submitReport() async {
     if (!_formKey.currentState!.validate()) return;
+    
+    // Prevent duplicate submission
+    if (_isSubmitting || _isLoading) {
+      return;
+    }
 
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _isSubmitting = true;
+    });
 
     try {
       final success = await ref.read(reportProvider.notifier).createReport({
@@ -139,27 +149,25 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
         
         if (locationMismatch && locationWarning != null) {
           // Show warning dialog untuk location mismatch
-          showDialog(
+          showResponsiveDialog(
             context: context,
-            builder: (context) => AlertDialog(
-              title: const Row(
-                children: [
-                  Icon(Icons.warning_amber_rounded, color: Colors.orange),
-                  SizedBox(width: 8),
-                  Text('Peringatan Lokasi'),
-                ],
-              ),
-              content: Text(locationWarning),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    Navigator.of(context).pop(true);
-                  },
-                  child: const Text('OK'),
+            title: 'Peringatan Lokasi',
+            icon: Icons.warning_amber_rounded,
+            iconColor: Colors.orange,
+            content: Text(locationWarning),
+            actions: [
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.of(context).pop(true);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                  foregroundColor: Colors.white,
                 ),
-              ],
-            ),
+                child: const Text('OK'),
+              ),
+            ],
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -194,7 +202,10 @@ class _CreateReportScreenState extends ConsumerState<CreateReportScreen> {
       }
     } finally {
       if (mounted) {
-        setState(() => _isLoading = false);
+        setState(() {
+          _isLoading = false;
+          _isSubmitting = false;
+        });
       }
     }
   }

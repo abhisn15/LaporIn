@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/theme_provider.dart';
+import '../../widgets/responsive_dialog.dart';
 import '../security/face_enrollment_screen.dart';
 import 'edit_profile_screen.dart';
 import 'change_password_screen.dart';
@@ -314,26 +315,24 @@ class SettingsScreen extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: ElevatedButton.icon(
               onPressed: () async {
-                final confirm = await showDialog<bool>(
+                final confirm = await showResponsiveDialog<bool>(
                   context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text('Keluar'),
-                    content: const Text('Apakah Anda yakin ingin keluar?'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, false),
-                        child: const Text('Batal'),
+                  title: 'Keluar',
+                  content: const Text('Apakah Anda yakin ingin keluar?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('Batal'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue[600],
+                        foregroundColor: Colors.white,
                       ),
-                      ElevatedButton(
-                        onPressed: () => Navigator.pop(context, true),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue[600],
-                          foregroundColor: Colors.white,
-                        ),
-                        child: const Text('Keluar'),
-                      ),
-                    ],
-                  ),
+                      child: const Text('Keluar'),
+                    ),
+                  ],
                 );
 
                 if (confirm == true) {

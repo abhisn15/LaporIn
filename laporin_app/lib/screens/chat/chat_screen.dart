@@ -22,6 +22,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   final ScrollController _scrollController = ScrollController();
   final List<Map<String, dynamic>> _messages = [];
   bool _isLoading = false;
+  bool _isSubmittingReport = false; // Flag untuk mencegah duplikasi
   Map<String, dynamic>? _pendingReportDraft;
   File? _imageFile;
   String? _imageBase64;
@@ -138,26 +139,20 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       
       setState(() {
         final rawContent = response.data['response'] ?? response.data['message'] ?? response.data['reply'] ?? 'Terima kasih atas gambar yang Anda kirim.';
-        
-        // SELALU set reportData jika ada di response (untuk memastikan tombol muncul)
-        final reportDataFromResponse = response.data['reportData'];
-        
         _messages.add({
           'role': 'assistant',
           'content': _removeMarkdown(rawContent),
-          'reportData': reportDataFromResponse, // SELALU sertakan reportData jika ada
+          'reportData': response.data['reportData'],
           'awaitingConfirmation': response.data['awaitingConfirmation'] ?? response.data['previewMode'] ?? false,
           'timestamp': DateTime.now(),
         });
         
         // Set pending draft jika ada reportData (SELALU set untuk memastikan tombol CTA muncul)
-        if (reportDataFromResponse != null) {
-          _pendingReportDraft = Map<String, dynamic>.from(reportDataFromResponse);
-          debugPrint('✅ Draft set dengan reportData (image): ${_pendingReportDraft}');
-          debugPrint('✅ reportData keys: ${reportDataFromResponse.keys.toList()}');
+        if (response.data['reportData'] != null) {
+          _pendingReportDraft = response.data['reportData'];
+          debugPrint('✅ Draft set dengan reportData (image): ${response.data['reportData']}');
         } else {
           _pendingReportDraft = null;
-          debugPrint('⚠️ Tidak ada reportData dalam response (image)');
         }
         _isLoading = false;
         _imageBase64 = null;
@@ -223,27 +218,21 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       
       setState(() {
         final rawContent = response.data['response'] ?? response.data['message'] ?? response.data['reply'] ?? 'Maaf, terjadi kesalahan';
-        
-        // SELALU set reportData jika ada di response (untuk memastikan tombol muncul)
-        final reportDataFromResponse = response.data['reportData'];
-        
         _messages.add({
           'role': 'assistant',
           'content': _removeMarkdown(rawContent),
-          'reportData': reportDataFromResponse, // SELALU sertakan reportData jika ada
+          'reportData': response.data['reportData'],
           'awaitingConfirmation': response.data['awaitingConfirmation'] ?? response.data['previewMode'] ?? false,
           'timestamp': DateTime.now(),
         });
         
         // Set pending draft jika ada reportData (SELALU set untuk memastikan tombol CTA muncul)
-        if (reportDataFromResponse != null) {
-          _pendingReportDraft = Map<String, dynamic>.from(reportDataFromResponse);
-          debugPrint('✅ Draft set dengan reportData: ${_pendingReportDraft}');
-          debugPrint('✅ reportData keys: ${reportDataFromResponse.keys.toList()}');
+        if (response.data['reportData'] != null) {
+          _pendingReportDraft = response.data['reportData'];
+          debugPrint('✅ Draft set dengan reportData: ${response.data['reportData']}');
         } else {
           // Clear draft jika tidak ada reportData
           _pendingReportDraft = null;
-          debugPrint('⚠️ Tidak ada reportData dalam response');
         }
         
         // Jika report sudah dibuat otomatis
@@ -600,8 +589,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                         ),
                                       ),
                                       // Tampilkan tombol CTA jika ada reportData (SELALU tampilkan tombol jika ada reportData)
-                                      // Periksa reportData di message atau di _pendingReportDraft
-                                      if (!isUser && (message['reportData'] != null || _pendingReportDraft != null)) ...[
+                                      if (!isUser && message['reportData'] != null) ...[
                                         const SizedBox(height: 12),
                                         Row(
                                           children: [
@@ -609,10 +597,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                               child: OutlinedButton.icon(
                                                 onPressed: () async {
                                                   // Navigasi ke edit screen
-                                                  // Gunakan reportData dari message atau _pendingReportDraft
-                                                  final draftData = message['reportData'] ?? _pendingReportDraft;
-                                                  if (draftData != null) {
-                                                    final draft = draftData as Map<String, dynamic>;
+                                                  if (message['reportData'] != null) {
+                                                    final draft = message['reportData'] as Map<String, dynamic>;
                                                     final result = await Navigator.of(context).push(
                                                       MaterialPageRoute(
                                                         builder: (_) => CreateReportScreen(
@@ -694,14 +680,19 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                             Expanded(
                                               flex: 2,
                                               child: ElevatedButton.icon(
-                                                onPressed: () async {
+                                                onPressed: _isSubmittingReport ? null : () async {
+                                                  // Prevent duplicate submission
+                                                  if (_isSubmittingReport || _isLoading) {
+                                                    return;
+                                                  }
+                                                  
                                                   // Langsung kirim pesan konfirmasi ke chatbot
-                                                  // Gunakan reportData dari message atau _pendingReportDraft
-                                                  final draftData = message['reportData'] ?? _pendingReportDraft;
-                                                  if (draftData != null) {
-                                                    _pendingReportDraft = draftData is Map<String, dynamic> 
-                                                        ? Map<String, dynamic>.from(draftData)
-                                                        : draftData;
+                                                  if (message['reportData'] != null) {
+                                                    setState(() {
+                                                      _isSubmittingReport = true;
+                                                    });
+                                                    
+                                                    _pendingReportDraft = message['reportData'];
                                                     
                                                     // Kirim pesan konfirmasi
                                                     setState(() {
@@ -757,6 +748,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                                         }
                                                         
                                                         _isLoading = false;
+                                                        _isSubmittingReport = false;
                                                       });
                                                       
                                                       _scrollToBottom();
@@ -1123,10 +1115,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               Expanded(
                 flex: 2,
                 child: ElevatedButton.icon(
-                  onPressed: () async {
+                  onPressed: _isSubmittingReport ? null : () async {
+                    // Prevent duplicate submission
+                    if (_isSubmittingReport || _isLoading) {
+                      return;
+                    }
+                    
                     // Langsung kirim pesan konfirmasi ke chatbot
                     if (_pendingReportDraft != null) {
                       setState(() {
+                        _isSubmittingReport = true;
                         _messages.add({
                           'role': 'user',
                           'content': 'kirim laporan',
@@ -1179,6 +1177,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           }
                           
                           _isLoading = false;
+                          _isSubmittingReport = false;
                         });
                         
                         _scrollToBottom();
@@ -1190,6 +1189,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                             'timestamp': DateTime.now(),
                           });
                           _isLoading = false;
+                          _isSubmittingReport = false;
                         });
                         _scrollToBottom();
                       }

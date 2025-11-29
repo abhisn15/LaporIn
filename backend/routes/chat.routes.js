@@ -664,14 +664,25 @@ ${roleUser === 'warga' ? '- Hanya buat draft laporan jika informasi SUDAH LENGKA
       // HANYA jika ini benar-benar konfirmasi (tidak ada laporan baru di pesan DAN draft sudah ada)
       console.log('✅ Konfirmasi terdeteksi (bukan laporan baru, draft ada):', pesanKecil);
      
+      // PERBAIKAN: Cek apakah draft sudah pernah dikirim (prevent duplicate)
+      if (!draftTertunda.reportData) {
+        return res.json({
+          reply: 'Draft laporan tidak ditemukan. Silakan buat laporan baru.',
+        });
+      }
+     
       console.log('✅ Mengirim draft laporan (konfirmasi user):', {
         title: draftTertunda.reportData?.title,
         location: draftTertunda.reportData?.location,
         hasImage: !!draftTertunda.reportData?.imageUrl
       });
+      
+      // Hapus draft SEBELUM membuat laporan untuk mencegah duplikasi
+      const reportDataToCreate = draftTertunda.reportData;
+      daftarDraftLaporan.delete(idUser);
+      
       try {
-        const { createdReport, txHash } = await buatLaporanDenganAI(draftTertunda.reportData, idUser, roleUser);
-        daftarDraftLaporan.delete(idUser);
+        const { createdReport, txHash } = await buatLaporanDenganAI(reportDataToCreate, idUser, roleUser);
         return res.json({
           reply:
             `✅ **Laporan berhasil dikirim!**\n\n` +
